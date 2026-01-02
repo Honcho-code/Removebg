@@ -1,12 +1,11 @@
 import React from "react";
-import { buyCoinStore } from "../Store/buyCOinStore";
 import { X } from "lucide-react";
 import { useStore } from "../Store/useStore";
 import Loading from "./Loading";
 import { toast } from "react-toastify";
 
 const PlanModel = () => {
-  const { isOpen, selectedPlan, closeModel, checkout, checkingOut, checkoutSuccess } = useStore();
+  const {  selectedPlan, closeModel, checkout, checkingOut } = useStore();
   const handlehandleCheckout = (selectedPlan)=>{
     checkout()
     toast.success(`${selectedPlan.credits}credits sucessfully added to your balance`)
