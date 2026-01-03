@@ -42,6 +42,10 @@ export const useStore = create(
           isOpen: false,
           selectedPlan: null,
         }),
+      setSelectedColor: (color) =>
+        set({
+          selectedColor: color,
+        }),
       signin: async () => {
         set({ loading: true, error: null });
         try {
@@ -127,6 +131,7 @@ export const useStore = create(
             image: file,
             imagePreview: URL.createObjectURL(file),
             processedImage: null,
+            selectedColor: null, // Reset color on new flow
           });
 
           navigate("/result");
@@ -143,6 +148,7 @@ export const useStore = create(
           imageFile: null,
           imagePreview: null,
           processedImage: null,
+          selectedColor: null, // Reset color
         });
       },
       removeBackground: async () => {
@@ -175,7 +181,7 @@ export const useStore = create(
             { image_file_b64: base64, size: "auto" },
             {
               headers: {
-                "X-Api-Key": "dvVgJSVgfe5Nc4bPQ1BauNLG",
+                "X-Api-Key": import.meta.env.VITE_REMOVE_BG_API_KEY,
                 "Content-Type": "application/json",
               },
               responseType: "arraybuffer",
@@ -210,22 +216,52 @@ export const useStore = create(
           set({ loading: false });
         }
       },
-      downloadImage: () => {
-        const { processedImage } = get();
+      downloadImage: async () => {
+        const { processedImage, selectedColor } = get();
         if (!processedImage) {
           toast.error("No processed image to download");
           return;
         }
 
-        // Create a temporary link element
-        const link = document.createElement("a");
-        link.href = processedImage;
-        link.download = `removebg_${Date.now()}.png`; // name the file
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        try {
+          let downloadUrl = processedImage;
 
-        toast.success("Image downloaded successfully!");
+          if (selectedColor) {
+            const canvas = document.createElement('canvas');
+            const img = new Image();
+            img.src = processedImage;
+            await new Promise((resolve, reject) => {
+              img.onload = resolve;
+              img.onerror = reject;
+            });
+
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+
+            // Fill background
+            ctx.fillStyle = selectedColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw image
+            ctx.drawImage(img, 0, 0);
+
+            downloadUrl = canvas.toDataURL('image/png');
+          }
+
+          // Create a temporary link element
+          const link = document.createElement("a");
+          link.href = downloadUrl;
+          link.download = `removebg_${Date.now()}.png`; // name the file
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          toast.success("Image downloaded successfully!");
+        } catch (error) {
+          console.error(error);
+          toast.error("Failed to download image");
+        }
       },
     };
   }),
