@@ -11,7 +11,9 @@ const Resultcon = () => {
     removeBackground,
     processedImage,
     loading,
-    downloadImage
+    downloadImage,
+    selectedColor,
+    setSelectedColor
   } = useStore();
   const fileInputRef = useRef(null);
   const resultRef = useRef(null);
@@ -77,9 +79,9 @@ const Resultcon = () => {
             Background removed
           </p>
           <div
-            className={`rounded-md border border-gray-300 h-50 ${
-              processedImage && "h-full"
-            } md:h-full relative bg-layer overflow-hidden`}
+            className={`rounded-md border border-gray-300 h-50 ${processedImage && "h-full"
+              } md:h-full relative overflow-hidden ${!selectedColor ? 'bg-layer' : ''}`}
+            style={{ backgroundColor: selectedColor || 'transparent' }}
           >
             {/* <img src={assets.image_wo_bg} alt="" className='rounded-md' /> */}
             {loading && (
@@ -104,6 +106,25 @@ const Resultcon = () => {
               />
             )}
           </div>
+          {processedImage && (
+            <div className="flex justify-center items-center gap-3 mt-4">
+              <button
+                className={`w-8 h-8 rounded-full border border-gray-300 cursor-pointer overflow-hidden ${!selectedColor ? 'ring-2 ring-offset-1 ring-gray-400' : ''}`}
+                onClick={() => setSelectedColor(null)}
+                title="Original"
+              >
+                <div className="w-full h-full bg-layer opacity-60"></div>
+              </button>
+              {['#000000', '#FFFFFF', '#FF4D4D', '#3B82F6', '#22C55E', '#FACC15', '#A855F7', '#EC4899'].map((color) => (
+                <button
+                  key={color}
+                  className={`w-8 h-8 rounded-full cursor-pointer transition-transform hover:scale-110 border border-gray-200 ${selectedColor === color ? 'ring-2 ring-offset-1 ring-gray-500 scale-110' : ''}`}
+                  style={{ backgroundColor: color }}
+                  onClick={() => setSelectedColor(color)}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
       <div className="flex items-center justify-end gap-4 mt-5">
